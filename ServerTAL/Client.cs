@@ -34,7 +34,8 @@ namespace ServerTAL
             private Packet receivedData;
             private byte[] receiveBuffer;
 
-            public TCP(int _id)            {
+            public TCP(int _id)
+            {
                 id = _id;
             }
 
@@ -78,6 +79,7 @@ namespace ServerTAL
                     if(_byteLength <= 0)
                     {
                         // TODO: disconnect
+                        Server.clients[id].Disconnect();
                         return;
                     }
 
@@ -92,6 +94,7 @@ namespace ServerTAL
                 {
                     Console.WriteLine($"Error receiving TCP data: {e}");
                     // TODO: disconnect
+                    Server.clients[id].Disconnect();
                 }
             }
 
@@ -141,6 +144,15 @@ namespace ServerTAL
                 return false;
             }
 
+            public void Disconnect()
+            {
+                socket.Close();
+                stream = null;
+                receivedData = null;
+                receiveBuffer = null;
+                socket = null;
+            }
+
         }
 
         public class UDP
@@ -178,6 +190,11 @@ namespace ServerTAL
                     }
                 });
             }
+
+            public void Disconnect()
+            {
+                endPoint = null;
+            }
         }
 
         public void SendIntoGame(string _playerName)
@@ -202,6 +219,16 @@ namespace ServerTAL
                     ServerSend.SpawnPlayer(_client.id, player);
                 }
             }
+        }
+
+        private void Disconnect()
+        {
+            Console.WriteLine($"{tcp.socket.Client.RemoteEndPoint} has disconnected.");
+
+            player = null;
+
+            tcp.Disconnect();
+            udp.Disconnect();
         }
     }
 }

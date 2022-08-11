@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
+using System.Numerics;
 
 namespace ServerTAL
 {
@@ -13,6 +14,7 @@ namespace ServerTAL
         public static int dataBufferSize = 4096;
 
         public int id;
+        public Player player;
         public TCP tcp;
         public UDP udp;
 
@@ -155,7 +157,6 @@ namespace ServerTAL
             public void Connect(IPEndPoint _endPoint)
             {
                 endPoint = _endPoint;
-                ServerSend.UDPTest(id);
             }
 
             public void SendData(Packet _packet)
@@ -176,6 +177,30 @@ namespace ServerTAL
                         Server.packetHandlers[_packetId](id, _packet);
                     }
                 });
+            }
+        }
+
+        public void SendIntoGame(string _playerName)
+        {
+            player = new Player(id, _playerName, new Vector3(0f, 0f, 0f));
+
+            foreach(Client _client in Server.clients.Values)
+            {
+                if(_client.player != null)
+                {
+                    if(_client.id != id)
+                    {
+                        ServerSend.SpawnPlayer(id, _client.player);
+                    }
+                }
+            }
+
+            foreach(Client _client in Server.clients.Values)
+            {
+                if(_client != null)
+                {
+                    ServerSend.SpawnPlayer(_client.id, player);
+                }
             }
         }
     }

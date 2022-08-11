@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Numerics;
 
 namespace ServerTAL
 {
@@ -10,14 +11,16 @@ namespace ServerTAL
     public enum ServerPackets
     {
         welcome = 1,
-        udpTest
+        spawnPlayer,
+        playerPosition,
+        playerRotation,
     }
 
     /// <summary>Sent from client to server.</summary>
     public enum ClientPackets
     {
         welcomeReceived = 1,
-        udpTestReceive
+        playerMovement
     }
 
     public class Packet : IDisposable
@@ -160,6 +163,24 @@ namespace ServerTAL
         {
             Write(_value.Length); // Add the length of the string to the packet
             buffer.AddRange(Encoding.ASCII.GetBytes(_value)); // Add the string itself
+        }
+
+        /// <summary>Adds a Vector3 to the packet.</summary>
+        /// <param name="_value">The string to add.</param>
+        public void Write(Vector3 _value)
+        {
+            Write(_value.X);
+            Write(_value.Y);
+            Write(_value.Z);
+        }
+        /// <summary>Adds a Quaternion to the packet.</summary>
+        /// <param name="_value">The string to add.</param>
+        public void Write(Quaternion _value)
+        {
+            Write(_value.X);
+            Write(_value.Y);
+            Write(_value.Z);
+            Write(_value.W);
         }
         #endregion
 
@@ -331,6 +352,19 @@ namespace ServerTAL
             { 
                 throw new Exception("Could not read value of type 'string'!");
             }
+        }
+        /// <summary>Reads a Vector3 from the packet.</summary>
+        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        public Vector3 ReadVector3(bool _moveReadPos = true)
+        {
+            return new Vector3(ReadFloat(_moveReadPos), ReadFloat(_moveReadPos), ReadFloat(_moveReadPos));
+        }
+
+        /// <summary>Reads a Quaternion from the packet.</summary>
+        /// <param name="_moveReadPos">Whether or not to move the buffer's read position.</param>
+        public Quaternion ReadQuaternion(bool _moveReadPos = true)
+        {
+            return new Quaternion(ReadFloat(_moveReadPos), ReadFloat(_moveReadPos), ReadFloat(_moveReadPos), ReadFloat(_moveReadPos));
         }
         #endregion
 
